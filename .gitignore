@@ -4,3 +4,4 @@
 
 data/*
 !data/load_tiny_imagenet200.sh
+!data/*.py
