@@ -21,7 +21,7 @@ class VGG(nn.Module):
 
     def __init__(self,
                  config: str = 'vgg16',
-                 num_classes: int = 10,
+                 num_classes: int = 200,
                  init_weights: bool = False,
                  dropout_p: float = 0.5,
                  pretrained: bool = False
@@ -52,7 +52,7 @@ class VGG(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.feature_extractor(x)
         x = self.pooling(x)
-        x = torch.flatten(x)
+        x = torch.flatten(x, 1)
         x = self.classifier(x)
         
         return x
