@@ -16,6 +16,12 @@ from cfg import DEVICE, BATCH_SIZE, USE_AMP, EPOCHS, LR, MODEL_CFG
 
 def step(model, optimizer, criterion, loader, step_name='train') -> nn.Module:
     scaler = torch.cuda.amp.GradScaler(enabled=USE_AMP)
+    
+    values = {
+        'loss': [],
+        'predicts': [],
+        'targets': []
+    }
 
     with torch.inference_mode(mode=step_name == 'eval'):
         for batch in tqdm(loader, desc=step_name):
@@ -23,7 +29,16 @@ def step(model, optimizer, criterion, loader, step_name='train') -> nn.Module:
 
             with torch.cuda.amp.autocast(enabled=USE_AMP):
                 output = model(images)
+                predicts = output.softmax(1)
                 loss = criterion(output, targets)
+                print(predicts)
+                values['loss'].append(loss.item())
+                values['predicts'].append(predicts)
+                values['targets'].append(targets)
+                
+                values['loss'].append(loss.item())
+                values['predicts'].append(predicts)
+                values['targets'].append(targets)
                 
                 if step_name == 'train':
                     optimizer.zero_grad()
@@ -35,7 +50,9 @@ def step(model, optimizer, criterion, loader, step_name='train') -> nn.Module:
                     else:
                         loss.backward()
                         optimizer.step()
-    
+
+            break
+        print(values)
     return model
 
 

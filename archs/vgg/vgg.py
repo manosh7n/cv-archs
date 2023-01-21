@@ -24,7 +24,6 @@ class VGG(nn.Module):
                  num_classes: int = 200,
                  init_weights: bool = False,
                  dropout_p: float = 0.5,
-                 pretrained: bool = False
                  ) -> None:
         super().__init__()
 
@@ -43,11 +42,8 @@ class VGG(nn.Module):
             nn.Linear(4096, num_classes)
         )
         
-        if self.init_weights and not pretrained:
+        if self.init_weights:
             self._init_weights
-
-        if pretrained:
-            pass
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.feature_extractor(x)

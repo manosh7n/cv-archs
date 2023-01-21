@@ -1,4 +1,4 @@
-DEVICE = 'cuda'
+DEVICE = 'cpu'
 BATCH_SIZE = 4
 USE_AMP = False
 EPOCHS = 10
