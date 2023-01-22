@@ -1,6 +1,8 @@
 *_env
 .ipynb_checkpoints
 *.pyc
+mlruns
+lightning_logs
 
 data/*
 !data/load_tiny_imagenet200.sh
