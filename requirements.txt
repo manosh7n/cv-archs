@@ -106,6 +106,7 @@ tinycss2==1.2.1
 tomli==2.0.1
 torch==1.13.1+cu116
 torchaudio==0.13.1+cu116
+torchmetrics==0.11.0
 torchvision==0.14.1+cu116
 tornado==6.2
 tqdm==4.64.1
