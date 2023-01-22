@@ -3,13 +3,16 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 
 import torch
+import mlflow
 import torch.nn as nn
 import numpy as np
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
+from mlflow import log_metric, log_param, log_artifacts
+from torchmetrics.functional import auroc, accuracy, recall, precision, f1_score
 
-from vgg import VGG, VGG_CFG
+from vgg import VGG
 from data.dataset import train_set, valid_set
 from cfg import DEVICE, BATCH_SIZE, USE_AMP, EPOCHS, LR, MODEL_CFG
 
@@ -29,13 +32,9 @@ def step(model, optimizer, criterion, loader, step_name='train') -> nn.Module:
 
             with torch.cuda.amp.autocast(enabled=USE_AMP):
                 output = model(images)
-                predicts = output.softmax(1)
+                predicts = output.softmax(1).argmax(1)
                 loss = criterion(output, targets)
-                print(predicts)
-                values['loss'].append(loss.item())
-                values['predicts'].append(predicts)
-                values['targets'].append(targets)
-                
+   
                 values['loss'].append(loss.item())
                 values['predicts'].append(predicts)
                 values['targets'].append(targets)
@@ -51,8 +50,10 @@ def step(model, optimizer, criterion, loader, step_name='train') -> nn.Module:
                         loss.backward()
                         optimizer.step()
 
-            break
-        print(values)
+        values['predicts'] = torch.cat(values['predicts'], dim=0)
+        values['targets'] = torch.cat(values['targets'], dim=0)
+        
+        
     return model
 
 
