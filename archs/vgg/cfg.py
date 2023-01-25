@@ -1,6 +1,6 @@
 DEVICE = 'cpu'
 BATCH_SIZE = 4
 USE_AMP = False
-EPOCHS = 10
+EPOCHS = 2
 LR = 1e-3
 MODEL_CFG = 'vgg13'
