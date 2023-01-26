@@ -1,6 +1,6 @@
-DEVICE = 'cpu'
-BATCH_SIZE = 4
+DEVICE = 'cuda'
+BATCH_SIZE = 16
 USE_AMP = False
-EPOCHS = 2
+EPOCHS = 4
 LR = 1e-3
-MODEL_CFG = 'vgg13'
+MODEL_CFG = 'vgg11'
