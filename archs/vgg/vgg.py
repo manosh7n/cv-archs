@@ -21,7 +21,7 @@ class VGG(nn.Module):
 
     def __init__(self,
                  config: str = 'vgg16',
-                 num_classes: int = 200,
+                 num_classes: int = 10,
                  init_weights: bool = False,
                  dropout_p: float = 0.5,
                  ) -> None:
@@ -54,7 +54,7 @@ class VGG(nn.Module):
         return x
     
     def _make_feature_extractor(self) -> nn.Sequential:
-        in_channels: int = 3
+        in_channels: int = 1
         layers: List[nn.Module] = []
         
         for out in VGG_CFG[self.config]:
@@ -74,7 +74,6 @@ class VGG(nn.Module):
         return nn.Sequential(*layers)
     
     def _init_weights(self) -> None:
-        
         for module in self.modules():
             if isinstance(module, nn.Linear):
                 torch.nn.init.xavier_uniform_(module.weight)

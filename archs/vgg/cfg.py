@@ -1,6 +1,7 @@
 DEVICE = 'cuda'
 BATCH_SIZE = 16
 USE_AMP = False
-EPOCHS = 4
+EPOCHS = 3
 LR = 1e-3
 MODEL_CFG = 'vgg11'
+NUM_CLASSES = 10

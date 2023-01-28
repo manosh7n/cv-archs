@@ -13,49 +13,73 @@ from torchmetrics.functional import auroc, accuracy, recall, precision, f1_score
 
 from vgg import VGG
 from data.dataset import train_set, valid_set
-from cfg import DEVICE, BATCH_SIZE, USE_AMP, EPOCHS, LR, MODEL_CFG
+import cfg as CFG
 
 
 os.environ["WANDB_SILENT"] = "true"
 
 
 class Trainer(object):
-    def __init__(self) -> None:
-        self.run = wandb.init(project="vgg_classifier")
-        self.artifact = wandb.Artifact('model', type='model')
+    def __init__(self) -> None:        
+        self.train_loader = DataLoader(train_set, batch_size=CFG.BATCH_SIZE, shuffle=True, num_workers=4)
+        self.valid_loader = DataLoader(valid_set, batch_size=CFG.BATCH_SIZE, shuffle=False, num_workers=4)
         
-        self.train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-        self.valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
-        
-        self.model = VGG(config=MODEL_CFG, num_classes=200, dropout_p=0.35).to(DEVICE)
-        self.optimizer = torch.optim.SGD(params=self.model.parameters(), lr=LR)
+        self.model = VGG(config=CFG.MODEL_CFG, num_classes=CFG.NUM_CLASSES, dropout_p=0.35).to(CFG.DEVICE)
+        self.optimizer = torch.optim.SGD(params=self.model.parameters(), lr=CFG.LR)
         self.criterion = nn.CrossEntropyLoss()
         # self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer, 
         #                                                      max_lr=0.01, 
         #                                                      steps_per_epoch=len(self.train_loader) // BATCH_SIZE, 
         #                                                      epochs=EPOCHS)
         
+        self.run = wandb.init(project="vgg_classifier")
         self.run.define_metric("train/*", step_metric='epoch')
         self.run.define_metric("eval/*", step_metric="epoch")
         self.run.watch(self.model, log='all', log_freq=50)
+        self.artifact = wandb.Artifact('model', type='model')
         
     def fit(self):
-         for epoch in range(1, EPOCHS + 1):
+        """
+        Starts the training loop.
+        """        
+        
+        for epoch in range(1, CFG.EPOCHS + 1):
             self.model.train()
             self.step(self.train_loader, epoch)
             
-            # torch.save(self.model.state_dict(), f'./models_state_dict/model_{epoch}.pt')
-            # self.artifact.add_file(f'./models_state_dict/model_{epoch}.pt') 
+            if epoch == CFG.EPOCHS:
+                model_path = os.path.join(os.path.dirname(__file__), f'./models_state_dict/model_{epoch}.pt')
+                torch.save(self.model.state_dict(), model_path)
+                self.artifact.add_file(model_path) 
             
             self.model.eval()
             self.step(self.valid_loader, epoch, step_name='eval')
+        
+        self.run.log_artifact(self.artifact)
     
-    def get_lr(self):
+    def get_lr(self) -> torch.FloatTensor:
+        """
+        Return current learning rate.
+
+        Returns:
+            torch.float: learning rate value
+        """
+        
         for param_group in self.optimizer.param_groups:
             return param_group['lr']
 
-    def step(self, loader, epoch, step_name='train') -> nn.Module:
-        scaler = torch.cuda.amp.GradScaler(enabled=USE_AMP)
+    def step(self, loader: DataLoader, epoch: int, step_name='train'):
+        """
+        Performs the training / evaluation step.
+
+        Args:
+            loader (DataLoader): train / eval loader
+            epoch (int): epoch number
+            step_name (str, optional): train - training step (grad enables), 
+                                       eval - validation step. Defaults to 'train'.
+        """     
+           
+        scaler = torch.cuda.amp.GradScaler(enabled=CFG.USE_AMP)
         
         values = {
             'loss': [],
@@ -65,20 +89,20 @@ class Trainer(object):
         
         with torch.inference_mode(mode=step_name == 'eval'):
             for batch in tqdm(loader, desc=step_name):
-                images, targets = [item.to(DEVICE) for item in batch]
+                images, targets = [item.to(CFG.DEVICE) for item in batch]
                 
-                with torch.cuda.amp.autocast(enabled=USE_AMP):
+                with torch.cuda.amp.autocast(enabled=CFG.USE_AMP):
                     output = self.model(images)
                     loss = self.criterion(output, targets)
     
                     values['loss'].append(loss.item())
                     values['predicts'].append(output.softmax(1))
                     values['targets'].append(targets)
-                    # print(loss)
+
                     if step_name == 'train':
                         self.optimizer.zero_grad()
                         
-                        if USE_AMP:
+                        if CFG.USE_AMP:
                             scaler.scale(loss).backward()
                             scaler.step(self.optimizer)
                             scaler.update()
@@ -95,7 +119,7 @@ class Trainer(object):
                 preds=values['predicts'],
                 target=values['targets'],
                 task='multiclass', 
-                num_classes=200
+                num_classes=CFG.NUM_CLASSES
             )
 
             self.run.log(
