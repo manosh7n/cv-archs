@@ -64,7 +64,7 @@ class VGG(nn.Module):
                 ])
             else:
                 layers.extend([
-                    nn.Conv2d(in_channels, out, kernel_size=3, stride=1, padding=1),
+                    nn.Conv2d(in_channels, out, kernel_size=3, stride=1, padding=1, bias=False),
                     nn.BatchNorm2d(out),
                     nn.ReLU()
                 ])
@@ -77,9 +77,14 @@ class VGG(nn.Module):
         
         for module in self.modules():
             if isinstance(module, nn.Linear):
-                pass
+                torch.nn.init.xavier_uniform_(module.weight)
+                if module.bias:
+                    nn.init.zeros_(module.bias)
             elif isinstance(module, nn.BatchNorm2d):
-                pass
+                torch.nn.init.uniform_(module.weight)
+                torch.nn.init.zeros_(module.bias)
             elif isinstance(module, nn.Conv2d):
-                pass
+                nn.init.kaiming_normal_(module.weight)
+                if module.bias:
+                    nn.init.zeros_(module.bias)
         

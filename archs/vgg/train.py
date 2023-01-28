@@ -24,12 +24,16 @@ class Trainer(object):
         self.run = wandb.init(project="vgg_classifier")
         self.artifact = wandb.Artifact('model', type='model')
         
-        self.train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
+        self.train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
         self.valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
         
-        self.model = VGG(config=MODEL_CFG, num_classes=200).to(DEVICE)
-        self.optimizer = torch.optim.Adam(params=self.model.parameters(), lr=LR)
+        self.model = VGG(config=MODEL_CFG, num_classes=200, dropout_p=0.35).to(DEVICE)
+        self.optimizer = torch.optim.SGD(params=self.model.parameters(), lr=LR)
         self.criterion = nn.CrossEntropyLoss()
+        # self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer, 
+        #                                                      max_lr=0.01, 
+        #                                                      steps_per_epoch=len(self.train_loader) // BATCH_SIZE, 
+        #                                                      epochs=EPOCHS)
         
         self.run.define_metric("train/*", step_metric='epoch')
         self.run.define_metric("eval/*", step_metric="epoch")
@@ -62,7 +66,7 @@ class Trainer(object):
         with torch.inference_mode(mode=step_name == 'eval'):
             for batch in tqdm(loader, desc=step_name):
                 images, targets = [item.to(DEVICE) for item in batch]
-
+                
                 with torch.cuda.amp.autocast(enabled=USE_AMP):
                     output = self.model(images)
                     loss = self.criterion(output, targets)
@@ -70,7 +74,7 @@ class Trainer(object):
                     values['loss'].append(loss.item())
                     values['predicts'].append(output.softmax(1))
                     values['targets'].append(targets)
-                    
+                    # print(loss)
                     if step_name == 'train':
                         self.optimizer.zero_grad()
                         
@@ -81,7 +85,9 @@ class Trainer(object):
                         else:
                             loss.backward()
                             self.optimizer.step()
-                # break
+                            
+                        # self.scheduler.step()
+                
             values['predicts'] = torch.cat(values['predicts'], dim=0)
             values['targets'] = torch.cat(values['targets'], dim=0)
             
@@ -105,7 +111,7 @@ class Trainer(object):
                     f'{step_name}/recall_macro': recall(average='macro', **metric_params),
                     
                     f'{step_name}/loss': np.mean(values['loss']),
-                    # f'{step_name}/lr': get_lr(optimizer),
+                    # f'{step_name}/lr': self.scheduler.get_last_lr(),
                     'epoch': epoch 
                 }
             )
