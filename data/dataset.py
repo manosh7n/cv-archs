@@ -4,8 +4,9 @@ import torch
 import numpy as np
 import albumentations as A
 from typing import Any
-from torchvision.datasets import ImageFolder
+from torchvision import transforms
 from albumentations.pytorch import ToTensorV2
+from torchvision.datasets import ImageFolder, MNIST
 
 
 class Transforms():
@@ -39,11 +40,20 @@ valid_transforms = A.Compose([
     A.Normalize(p=1),
     ToTensorV2(p=1)
 ])
-    
-train_set = ImageFolder(root=os.path.join(os.path.dirname(__file__), 'tiny-imagenet-200/train'),
-                        transform=Transforms(train_transforms),
-                        loader=lambda x: cv2.imread(x)[:, :, ::-1])
 
-valid_set = ImageFolder(root=os.path.join(os.path.dirname(__file__), 'tiny-imagenet-200/val'),
-                        transform=Transforms(valid_transforms),
-                        loader=lambda x: cv2.imread(x)[:, :, ::-1])
+transform=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Resize((224, 224)),
+        transforms.Normalize((0.1307,), (0.3081,))
+        ])
+    
+# train_set = ImageFolder(root=os.path.join(os.path.dirname(__file__), 'tiny-imagenet-200/train'),
+#                         transform=Transforms(train_transforms),
+#                         loader=lambda x: cv2.imread(x)[:, :, ::-1])
+
+# valid_set = ImageFolder(root=os.path.join(os.path.dirname(__file__), 'tiny-imagenet-200/val'),
+#                         transform=Transforms(valid_transforms),
+#                         loader=lambda x: cv2.imread(x)[:, :, ::-1])
+
+train_set = MNIST(root=os.path.dirname(__file__), train=True, download=True, transform=transform)
+valid_set = MNIST(root=os.path.dirname(__file__), train=False, download=True, transform=transform)
