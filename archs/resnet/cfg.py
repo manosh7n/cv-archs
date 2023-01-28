@@ -1,0 +1,7 @@
+DEVICE = 'cuda'
+BATCH_SIZE = 16
+USE_AMP = False
+EPOCHS = 3
+LR = 1e-3
+MODEL_CFG = '?'
+NUM_CLASSES = 10

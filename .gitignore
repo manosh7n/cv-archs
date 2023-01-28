@@ -1,6 +1,8 @@
 *_env
 .ipynb_checkpoints
 *.pyc
+*.pth
+*.pt
 mlruns
 wandb
 lightning_logs

@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from torchmetrics.functional import auroc, accuracy, recall, precision, f1_score
 
 import cfg as CFG
-from vgg import VGG
+from resnet import ResNet
 from data.dataset import train_set, valid_set
 
 
@@ -24,7 +24,7 @@ class Trainer(object):
         self.train_loader = DataLoader(train_set, batch_size=CFG.BATCH_SIZE, shuffle=True, num_workers=4)
         self.valid_loader = DataLoader(valid_set, batch_size=CFG.BATCH_SIZE, shuffle=False, num_workers=4)
         
-        self.model = VGG(config=CFG.MODEL_CFG, num_classes=CFG.NUM_CLASSES, dropout_p=0.35).to(CFG.DEVICE)
+        # self.model = ?
         self.optimizer = torch.optim.SGD(params=self.model.parameters(), lr=CFG.LR)
         self.criterion = nn.CrossEntropyLoss()
         # self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer, 
@@ -32,7 +32,7 @@ class Trainer(object):
         #                                                      steps_per_epoch=len(self.train_loader) // BATCH_SIZE, 
         #                                                      epochs=EPOCHS)
         
-        self.run = wandb.init(project="vgg_classifier")
+        self.run = wandb.init(project="resnet_classifier")
         self.run.define_metric("train/*", step_metric='epoch')
         self.run.define_metric("eval/*", step_metric="epoch")
         self.run.watch(self.model, log='all', log_freq=50)
