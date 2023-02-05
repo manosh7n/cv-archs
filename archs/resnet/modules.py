@@ -17,7 +17,7 @@ class Bottleneck(nn.Module):
         self.conv1x1_1 = nn.Conv2d(in_channels, in_channels, (1, 1), stride=1, bias=False)
         self.bn1 = nn.BatchNorm2d(in_channels)
         
-        self.conv3x3 = nn.Conv2d(in_channels, in_channels, (3, 3), stride=stride, bias=False)
+        self.conv3x3 = nn.Conv2d(in_channels, in_channels, (3, 3), stride=stride, bias=False, padding=1)
         self.bn2 = nn.BatchNorm2d(in_channels)
         
         self.conv1x1_2 = nn.Conv2d(in_channels, in_channels * self.increase_factor, (1, 1), stride=1, bias=False)
@@ -33,7 +33,7 @@ class Bottleneck(nn.Module):
         out = self.relu(out)
         
         out = self.conv3x3(out)
-        out = self.bn(out)
+        out = self.bn2(out)
         out = self.relu(out)
         
         out = self.conv1x1_2(out)
@@ -57,10 +57,10 @@ class BasicResidualBlock(nn.Module):
 
         self.downsample = downsample_block
         
-        self.conv3x3_1 = nn.Conv2d(in_channels, in_channels, (3, 3), stride=stride, bias=False)
+        self.conv3x3_1 = nn.Conv2d(in_channels, in_channels, (3, 3), stride=stride, bias=False, padding=1)
         self.bn1 = nn.BatchNorm2d(in_channels)
         
-        self.conv3x3_2 = nn.Conv2d(in_channels, in_channels, (3, 3), stride=1, bias=False)
+        self.conv3x3_2 = nn.Conv2d(in_channels, in_channels, (3, 3), stride=1, bias=False, padding=1)
         self.bn2 = nn.BatchNorm3d(in_channels)
         
         self.relu = nn.ReLU()
@@ -81,9 +81,19 @@ class BasicResidualBlock(nn.Module):
         out += identity
         out = self.relu(out)
         
-        return out
+        return out  
         
+
+class ShortcutBlock(nn.Module):
+    def __init__(self, in_channels: int, out_channels: int, stride: int) -> None:
+        super().__init__()
         
+        self.conv = nn.Conv2d(in_channels, out_channels, (3, 3), stride, padding=1, bias=False)
+        self.bn = nn.BatchNorm2d(out_channels)
         
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
         
-        
+        return x
+    
