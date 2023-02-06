@@ -11,10 +11,11 @@ RESNET_CFG = {
     'resnet50': [3, 4, 6, 3]
 }
 
+
 class ResNet(nn.Module):
 
     def __init__(self,
-                 config: str = '?',
+                 config: str = 'resnet18',
                  num_classes: int = 10,
                  init_weights: bool = False,
                  ) -> None:
@@ -22,7 +23,8 @@ class ResNet(nn.Module):
         
         
         self.input = 64
-        self.channels = torch.cumsum(torch.as_tensor([self.input] * 4), dim=0)  # [64, 128, 256, 512]
+        # todo
+        self.channels = # ?
         
         self.stages = RESNET_CFG[config]
         self.basic_block = Bottleneck if config in ['resnet50', 'resnet101', 'resnet152'] else BasicResidualBlock
@@ -63,4 +65,7 @@ class ResNet(nn.Module):
             )
             
         return block
+    
+    def _init_weights(self) -> None:
+        pass
         
