@@ -7,12 +7,12 @@ class Bottleneck(nn.Module):
     def __init__(self, 
                  in_channels: int, 
                  stride: int, 
-                 downsample_block: Optional[nn.Module] = None,
+                 shortcut: Optional[nn.Module] = None,
                  increase_factor: int = 4) -> None:
         super().__init__()
         
         self.increase_factor = increase_factor
-        self.downsample = downsample_block
+        self.downsample = shortcut
         
         self.conv1x1_1 = nn.Conv2d(in_channels, in_channels, (1, 1), stride=1, bias=False)
         self.bn1 = nn.BatchNorm2d(in_channels)
@@ -52,10 +52,11 @@ class BasicResidualBlock(nn.Module):
     def __init__(self,
                  in_channels: int, 
                  stride: int, 
-                 downsample_block: Optional[nn.Module] = None) -> None:
+                 shortcut: Optional[nn.Module] = None,
+                 increase_factor: int = 1) -> None:
         super().__init__()
 
-        self.downsample = downsample_block
+        self.downsample = shortcut
         
         self.conv3x3_1 = nn.Conv2d(in_channels, in_channels, (3, 3), stride=stride, bias=False, padding=1)
         self.bn1 = nn.BatchNorm2d(in_channels)
@@ -85,11 +86,14 @@ class BasicResidualBlock(nn.Module):
         
 
 class ShortcutBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, stride: int) -> None:
+    def __init__(self, in_channels: int, 
+                 stride: int,
+                 increase_factor: int = 1, 
+                 ) -> None:
         super().__init__()
         
-        self.conv = nn.Conv2d(in_channels, out_channels, (3, 3), stride, padding=1, bias=False)
-        self.bn = nn.BatchNorm2d(out_channels)
+        self.conv = nn.Conv2d(in_channels, in_channels * increase_factor, (3, 3), stride, padding=1, bias=False)
+        self.bn = nn.BatchNorm2d(in_channels * increase_factor)
         
     def forward(self, x):
         x = self.conv(x)
