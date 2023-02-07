@@ -21,10 +21,7 @@ class ResNet(nn.Module):
                  ) -> None:
         super().__init__()
         
-        
-        self.input = 64
-        # todo
-        self.channels = # ?
+        self.channels = [64, 128, 256, 512]
         
         self.stages = RESNET_CFG[config]
         self.basic_block = Bottleneck if config in ['resnet50', 'resnet101', 'resnet152'] else BasicResidualBlock
@@ -32,7 +29,7 @@ class ResNet(nn.Module):
 
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=(7, 7),
                                stride=2, padding=3, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
+        self.bn = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(True)
         self.maxpool = nn.MaxPool2d(kernel_size=(3, 3), stride=2, padding=1)
         
@@ -43,9 +40,18 @@ class ResNet(nn.Module):
                 f'stage_block_{i}',
                 self._make_block(self.channels[i], stage, i)
             )
-            
+        
+        
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        pass
+        x = self.conv1(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        
+        for stage_block in self.stage_blocks:
+            x = stage_block(x)
+        
+        return x
     
     def _make_block(self,
                     in_channels: int,

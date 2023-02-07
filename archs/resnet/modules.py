@@ -28,7 +28,7 @@ class Bottleneck(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         identity = x
 
-        out = self.conv1x1_1(out)
+        out = self.conv1x1_1(x)
         out = self.bn1(out)
         out = self.relu(out)
         
@@ -69,7 +69,7 @@ class BasicResidualBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         identity = x
         
-        out = self.conv3x3_1(out)
+        out = self.conv3x3_1(x)
         out = self.bn1(out)
         out = self.relu(out)
         
