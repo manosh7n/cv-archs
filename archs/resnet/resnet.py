@@ -34,10 +34,15 @@ class ResNet(nn.Module):
         for i, stage in enumerate(RESNET_CFG[config]):
             self.stage_blocks.add_module(
                 f'stage_block_{i}',
-                self._make_block(self.channels[i], stage, i)
+                self._make_stage_block(self.channels[i], stage, i)
             )
         
-        # global pool 
+        # global pool ?
+        self.avg_pool = nn.AdaptiveMaxPool2d((1, 1))
+        self.classifier = nn.Linear(?, num_classes)
+        
+        if init_weights:
+            self._init_weights()
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.conv1(x)
@@ -48,9 +53,12 @@ class ResNet(nn.Module):
         for stage_block in self.stage_blocks:
             x = stage_block(x)
         
+        x = self.avg_pool(x)
+        x = self.classifier(x)
+        
         return x
     
-    def _make_block(self,
+    def _make_stage_block(self,
                     in_channels: int,
                     block_count: int,
                     block_num: int) -> nn.Module:
