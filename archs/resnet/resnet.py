@@ -23,10 +23,10 @@ class ResNet(nn.Module):
         
         if config in ['resnet50', 'resnet101', 'resnet152']:
             self.basic_block = Bottleneck
-            self.block_inrease_factor = 4
+            self.block_increase_factor = 4
         else:
             self.basic_block = BasicResidualBlock
-            self.block_inrease_factor =  2
+            self.block_increase_factor =  2
         
         self.channels = [64, 128, 256, 512]
         
@@ -45,7 +45,7 @@ class ResNet(nn.Module):
         
         # global pool ?
         self.avg_pool = nn.AdaptiveMaxPool2d((1, 1))
-        self.classifier = nn.Linear(self.channels[-1] * self.block_inrease_factor, 
+        self.classifier = nn.Linear(self.channels[-1] * self.block_increase_factor, 
                                     num_classes)
         
         if init_weights:
@@ -74,7 +74,7 @@ class ResNet(nn.Module):
         
         block = nn.Sequential()
         shortcut = ShortcutBlock(in_channels, stride=2, 
-                                 increase_factor=self.block_inrease_factor)
+                                 increase_factor=self.block_increase_factor)
         
         for i in range(block_count - 1):
             block.add_module(
@@ -90,9 +90,9 @@ class ResNet(nn.Module):
             self.basic_block(in_channels=in_channels,
                              stride=2,
                              shortcut=shortcut,
-                             increase_factor=self.block_inrease_factor)
+                             increase_factor=self.block_increase_factor)
             )
-        print(self.block_inrease_factor, in_channels)
+        print(self.block_increase_factor, in_channels)
             
         return block
     
