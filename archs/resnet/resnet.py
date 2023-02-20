@@ -43,7 +43,6 @@ class ResNet(nn.Module):
                 self._make_stage_block(self.channels[i], stage, i)
             )
         
-        # global pool ?
         self.avg_pool = nn.AdaptiveMaxPool2d((1, 1))
         self.classifier = nn.Linear(self.channels[-1] * self.block_increase_factor, 
                                     num_classes)
@@ -57,7 +56,6 @@ class ResNet(nn.Module):
         x = self.relu(x)
         x = self.maxpool(x)
         
-        # ?? todo
         for stage_block in self.stage_blocks:
             x = stage_block(x)
         
@@ -73,26 +71,27 @@ class ResNet(nn.Module):
                     stage_num: int) -> nn.Module:
         
         block = nn.Sequential()
-        shortcut = ShortcutBlock(in_channels, stride=2, 
-                                 increase_factor=self.block_increase_factor)
+        shortcut = ShortcutBlock(in_channels=in_channels, 
+                                 out_channels=in_channels * self.block_increase_factor, 
+                                 stride=2)
         
         for i in range(block_count - 1):
             block.add_module(
                 f'basic_block_{stage_num}_{i}',
                 self.basic_block(in_channels=in_channels,
+                                 out_channels=in_channels,
                                  stride=1,
                                  shortcut=None,
-                                 increase_factor=1,
-                                 first_pos=(i == 0) & (stage_num != 0))
+                                 start_stage=(i == 0) & (stage_num != 0))
             )
+            
         block.add_module(
             f'basic_block_{stage_num}_{block_count}',
             self.basic_block(in_channels=in_channels,
+                             out_channels=in_channels * self.block_increase_factor,
                              stride=2,
-                             shortcut=shortcut,
-                             increase_factor=self.block_increase_factor)
+                             shortcut=shortcut)
             )
-        print(self.block_increase_factor, in_channels)
             
         return block
     
