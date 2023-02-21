@@ -24,7 +24,7 @@ class Trainer(object):
         self.train_loader = DataLoader(train_set, batch_size=CFG.BATCH_SIZE, shuffle=True, num_workers=4)
         self.valid_loader = DataLoader(valid_set, batch_size=CFG.BATCH_SIZE, shuffle=False, num_workers=4)
         
-        # self.model = ?
+        self.model = ResNet(CFG.MODEL_CFG).to(CFG.DEVICE)
         self.optimizer = torch.optim.SGD(params=self.model.parameters(), lr=CFG.LR)
         self.criterion = nn.CrossEntropyLoss()
         # self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer, 
