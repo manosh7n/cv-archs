@@ -77,13 +77,13 @@ class VGG(nn.Module):
         for module in self.modules():
             if isinstance(module, nn.Linear):
                 torch.nn.init.xavier_uniform_(module.weight)
-                if module.bias:
+                if module.bias is not None:
                     nn.init.zeros_(module.bias)
             elif isinstance(module, nn.BatchNorm2d):
                 torch.nn.init.uniform_(module.weight)
                 torch.nn.init.zeros_(module.bias)
             elif isinstance(module, nn.Conv2d):
                 nn.init.kaiming_normal_(module.weight)
-                if module.bias:
+                if module.bias is not None:
                     nn.init.zeros_(module.bias)
         

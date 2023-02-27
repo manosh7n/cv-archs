@@ -96,5 +96,16 @@ class ResNet(nn.Module):
         return block
     
     def _init_weights(self) -> None:
-        pass
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                torch.nn.init.xavier_uniform_(module.weight)
+                if module.bias is not None:
+                    module.bias.data.fill_(0.01)
+            elif isinstance(module, nn.BatchNorm2d):
+                torch.nn.init.uniform_(module.weight)
+                module.bias.data.fill_(0.01)
+            elif isinstance(module, nn.Conv2d):
+                nn.init.kaiming_normal_(module.weight)
+                if module.bias is not None:
+                    module.bias.data.fill_(0.01)
         
